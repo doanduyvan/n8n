@@ -1,23 +1,23 @@
-
 services:
   n8n:
     image: n8nio/n8n:latest
     container_name: n8n
     restart: unless-stopped
-    ports:
-      - "80:5678"
+    # ports:
+    #   - "80:5678"
 
     environment:
       TZ: Asia/Ho_Chi_Minh
       GENERIC_TIMEZONE: Asia/Ho_Chi_Minh
 
       # URL PUBLIC của n8n (quan trọng khi chạy reverse proxy)
-      N8N_HOST: localhost
+      N8N_HOST: odinn.site
       N8N_PORT: 5678
-      N8N_PROTOCOL: http
+      N8N_PROTOCOL: https
+      WEBHOOK_URL= https://odinn.site/
 
       # FIX lỗi secure cookie
-      N8N_SECURE_COOKIE: false
+      N8N_SECURE_COOKIE: true
 
       # Đặt thư mục để lưu dữ liệu workflow
       N8N_USER_FOLDER: /home/node/.n8n
@@ -28,5 +28,35 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
 
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    # depends_on:
+    #   - certbot
+    restart: always
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do
+      certbot renew;
+      sleep 12h & wait $${!};
+      done;"
+    restart: always
 volumes:
   n8n_data:
+
+networks:
+  default:
+    driver: bridge
