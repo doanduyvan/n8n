@@ -14,7 +14,7 @@ services:
       N8N_HOST: odinn.site
       N8N_PORT: 5678
       N8N_PROTOCOL: https
-      WEBHOOK_URL= "https://odinn.site/"
+      WEBHOOK_URL: "https://odinn.site/"
 
       # FIX lỗi secure cookie
       N8N_SECURE_COOKIE: true
